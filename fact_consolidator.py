@@ -18,7 +18,7 @@ from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 from openai import OpenAI
 import click
-from tqdm import tqdm
+from collections import Counter
 from dotenv import load_dotenv
 
 # Import our text similarity utilities
@@ -299,6 +299,10 @@ class FactConsolidator:
                     
                     if consolidated_facts:
                         logger.debug(f"Received {len(consolidated_facts)} consolidated facts")
+                        # Check if output = input
+                        if consolidated_facts == fact_texts:
+                            logger.info(f"No consolidation needed for cluster {cluster_id}")
+                            continue
                         results.append((cluster_facts, consolidated_facts))
                     else:
                         logger.warning(f"No consolidated facts returned for cluster {cluster_id}")
@@ -390,21 +394,33 @@ def main(min_cluster_size: int, confirmed_only: bool, auto_approve: bool, dry_ru
             # Process approval
             if approved and not dry_run:
                 print("Approved. Updating facts...")
+
+                old_facts = Counter([fact['text'] for fact in original_facts])
+                new_facts = Counter(consolidated_facts)
+                facts_to_delete = old_facts - new_facts
+                facts_to_create = new_facts - old_facts
+                
                 
                 try:
                     # Delete original facts
                     for fact in original_facts:
-                        print(f"Deleting fact {fact['id']}: {fact['text']}")
-                        fact_client.delete_fact(fact['id'])
-                        # Small delay to avoid overwhelming the API
-                        time.sleep(0.5)
+                        if fact['text'] in facts_to_delete and facts_to_delete[fact['text']] > 0:
+                            print(f"Deleting fact {fact['id']}: \"{fact['text']}\"")
+                            fact_client.delete_fact(fact['id'])
+                            # Small delay to avoid overwhelming the API
+                            time.sleep(0.5)
+                            facts_to_delete[fact['text']] -= 1
                     
                     # Create new consolidated facts
                     for fact_text in consolidated_facts:
-                        print(f"Creating new fact: {fact_text}")
-                        fact_client.create_fact(fact_text)
-                        # Small delay to avoid overwhelming the API
-                        time.sleep(0.5)
+                        if fact_text in facts_to_create and facts_to_create[fact_text] > 0:
+                            print(f"Creating new fact: \"{fact_text}\"")
+                            fact_client.create_fact(fact_text)
+                            # Small delay to avoid overwhelming the API
+                            time.sleep(0.5)
+                            facts_to_create[fact_text] -= 1
+                        else:
+                            print(f"Fact \"{fact_text}\" is in the original set.")
                 except Exception as e:
                     logger.error(f"Error updating facts: {str(e)}")
                     print(f"Error: {str(e)}")
