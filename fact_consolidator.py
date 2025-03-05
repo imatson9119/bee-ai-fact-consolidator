@@ -133,7 +133,7 @@ class LLMClient:
         2. Facts should be relatively short, no more than one sentence.
         3. All output facts must begin with the name of the person they are about.
         4. Do not merge facts with distinct implications or subjects.
-        5. If possible, do not remove information when consolidating facts.
+        5. Do not add or remove information when consolidating facts.
         6. Respond ONLY with a valid array containing consolidated / de-duplicated facts.
 
         Below is an example of how you should consolidate facts:
