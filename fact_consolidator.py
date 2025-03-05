@@ -140,16 +140,20 @@ class LLMClient:
         
         # Example Input:
         [
-            "Ian is friends with someone named Scott",
-            "Ian has a friend named Scott",
-            "Ian has a friend named Scott",
-            "Scott is friends with Ian"
+            "Ian likes to read",
+            "Ian likes reading",
+            "Ian is a bookworm",
+            "Ian is a coffee enthusiast",
+            "Ian enjoys drinking coffee",
+            "Ian likes to read",
+            "Ian likes to read science fiction"
         ]
 
         # Example Output:
         [
-            "Ian is close friends with someone named Scott",
-            "Ian has a friend named Scott that is the best man at his wedding"
+            "Ian is a coffee enthusiast",
+            "Ian likes to read",
+            "Ian likes science fiction"
         ]
 
     
@@ -173,7 +177,6 @@ class LLMClient:
 
             output = response.choices[0].message.content
             # Find the last array in the response
-            logger.info(f"\nInput:\n{facts_text}\nOutput:\n{output}")
             return json.loads(output)
         
         except Exception as e:
