@@ -300,7 +300,7 @@ class FactConsolidator:
                     if consolidated_facts:
                         logger.debug(f"Received {len(consolidated_facts)} consolidated facts")
                         # Check if output = input
-                        if consolidated_facts == fact_texts:
+                        if Counter(consolidated_facts) == Counter(fact_texts):
                             logger.info(f"No consolidation needed for cluster {cluster_id}")
                             continue
                         results.append((cluster_facts, consolidated_facts))
