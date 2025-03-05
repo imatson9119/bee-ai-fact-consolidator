@@ -115,29 +115,44 @@ class LLMClient:
     def __init__(self, api_url: str):
         self.client = OpenAI(base_url=api_url, api_key="not-needed")
     
-    def consolidate_facts(self, facts: List[str]) -> str:
+    def consolidate_facts(self, facts: List[str]) -> List[str]:
         """
         Use the LLM to consolidate a group of similar facts into
         one or more consolidated facts.
         """
-        facts_text = "\n".join([f"- {fact}" for fact in facts])
+        # Create an array of the facts
+        facts_text = "[\n\t" + ",\n\t".join([f'"{fact}"' for fact in facts]) + "\n]"
         
         prompt = f"""
         I have a set of similar personal facts that need to be consolidated 
         and deduplicated. Please combine these facts into one or more consolidated, 
-        accurate statements that preserve all the important information. Facts 
-        should be relatively short, no more than one sentence. Respond only with 
-        the consolidated / de-duplicated facts. Below is an example of how you
-        should consolidate facts:
+        accurate statements that preserve all the important information.
+        
+        Please adhere to the following rules:
+        1. Do not make up new facts, only consolidate existing ones.
+        2. Facts should be relatively short, no more than one sentence.
+        3. All output facts must begin with the name of the person they are about.
+        4. Do not merge facts with distinct implications or subjects.
+        5. If possible, do not remove information when consolidating facts.
+        6. Respond ONLY with a valid array containing consolidated / de-duplicated facts.
+
+        Below is an example of how you should consolidate facts:
         
         # Example Input:
-        Ian is friends with someone named Scott
-        Ian has a friend named Scott
-        Scott is friends with Ian
+        [
+            "Ian is friends with someone named Scott",
+            "Ian has a friend named Scott",
+            "Ian has a friend named Scott",
+            "Scott is friends with Ian"
+        ]
 
         # Example Output:
-        Ian is close friends with someone named Scott
-        Ian's friend Scott is the best man at his wedding 
+        [
+            "Ian is close friends with someone named Scott",
+            "Ian has a friend named Scott that is the best man at his wedding"
+        ]
+
+    
         
         # Input:
         {facts_text}
@@ -155,11 +170,15 @@ class LLMClient:
                 temperature=0.3,
                 max_tokens=300
             )
-            
-            return response.choices[0].message.content.strip()
+
+            output = response.choices[0].message.content
+            # Find the last array in the response
+            logger.info(f"\nInput:\n{facts_text}\nOutput:\n{output}")
+            return json.loads(output)
+        
         except Exception as e:
             logger.error(f"Error calling LLM API: {str(e)}")
-            return ""
+            return []
 
 
 class FactConsolidator:
@@ -275,8 +294,7 @@ class FactConsolidator:
                     
                     # Get consolidated facts
                     logger.debug(f"Sending {len(fact_texts)} facts to LLM for consolidation")
-                    consolidated_text = self.llm_client.consolidate_facts(fact_texts)
-                    consolidated_facts = [f.strip() for f in consolidated_text.split("\n") if f.strip()]
+                    consolidated_facts = self.llm_client.consolidate_facts(fact_texts)
                     
                     if consolidated_facts:
                         logger.debug(f"Received {len(consolidated_facts)} consolidated facts")

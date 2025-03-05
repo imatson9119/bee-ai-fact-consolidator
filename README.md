@@ -14,7 +14,7 @@ A command-line tool that uses k-means clustering and LLM-based consolidation to 
 
 - Python 3.9+
 - Access to Bee AI API
-- Local LLM running via LM Studio (or compatible OpenAI API interface)
+- Local LLM running via LM Studio (or compatible OpenAI API interface). I used LM Studio with Qwen 2.5 7B Instruct.
 
 ## Installation
 
