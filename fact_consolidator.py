@@ -222,7 +222,7 @@ class FactConsolidator:
         
         return clusters
     
-    def cluster_facts_agglomerative(self, facts: List[Dict[str, Any]], similarity_threshold: float = 0.5) -> Dict[int, List[Dict[str, Any]]]:
+    def cluster_facts_agglomerative(self, facts: List[Dict[str, Any]], similarity_threshold: float = 0.4) -> Dict[int, List[Dict[str, Any]]]:
         """
         Cluster facts based on their text similarity using agglomerative clustering.
         """
@@ -240,7 +240,7 @@ class FactConsolidator:
     
     def cluster_facts(self, facts: List[Dict[str, Any]], 
                      n_clusters: int = 0, 
-                     similarity_threshold: float = 0.5,
+                     similarity_threshold: float = 0.4,
                      use_agglomerative: bool = True) -> Dict[int, List[Dict[str, Any]]]:
         """
         Cluster facts based on their text similarity.
@@ -253,7 +253,7 @@ class FactConsolidator:
     
     def process_facts(self, facts: List[Dict[str, Any]], 
                      min_cluster_size: int = 2,
-                     similarity_threshold: float = 0.5,
+                     similarity_threshold: float = 0.4,
                      use_agglomerative: bool = True) -> List[Tuple[List[Dict[str, Any]], List[str]]]:
         """
         Process facts:
@@ -315,7 +315,7 @@ class FactConsolidator:
 @click.option("--confirmed-only", is_flag=True, help="Only process confirmed facts")
 @click.option("--auto-approve", is_flag=True, help="Automatically approve all consolidations without prompting")
 @click.option("--dry-run", is_flag=True, help="Don't make any changes, just show what would be done")
-@click.option("--similarity-threshold", default=0.5, help="Similarity threshold for clustering (0.0-1.0)")
+@click.option("--similarity-threshold", default=0.4, help="Similarity threshold for clustering (0.0-1.0)")
 @click.option("--use-kmeans", is_flag=True, help="Use k-means instead of agglomerative clustering")
 @click.option("--debug", is_flag=True, help="Enable debug logging")
 def main(min_cluster_size: int, confirmed_only: bool, auto_approve: bool, dry_run: bool, 

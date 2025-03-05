@@ -53,7 +53,7 @@ def find_similar_facts(facts: List[Dict[str, Any]],
 
 def agglomerative_clustering(facts: List[Dict[str, Any]], 
                              tfidf_matrix,
-                             similarity_threshold: float = 0.5) -> Dict[int, List[Dict[str, Any]]]:
+                             similarity_threshold: float = 0.4) -> Dict[int, List[Dict[str, Any]]]:
     """
     Perform agglomerative clustering on facts based on similarity.
     This is an alternative to k-means that doesn't require specifying the number of clusters.
