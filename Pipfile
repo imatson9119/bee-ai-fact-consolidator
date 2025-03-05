@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"  # For API calls
+scikit-learn = "*"  # For k-means clustering
+python-dotenv = "*"  # For environment variables
+openai = "*"  # For interacting with the local LLM
+numpy = "*"  # Required for scikit-learn
+tqdm = "*"  # For progress bars
+click = "*"  # For CLI interface
+
+[dev-packages]
+black = "*"
+isort = "*"
+flake8 = "*"
+
+[requires]
+python_version = "3.9" 
