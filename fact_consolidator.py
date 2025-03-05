@@ -156,8 +156,6 @@ class LLMClient:
             "Ian likes science fiction"
         ]
 
-    
-        
         # Input:
         {facts_text}
         
