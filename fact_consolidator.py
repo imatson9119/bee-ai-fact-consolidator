@@ -126,34 +126,61 @@ class LLMClient:
         prompt = f"""
         I have a set of similar personal facts that need to be consolidated 
         and deduplicated. Please combine these facts into one or more consolidated, 
-        accurate statements that preserve all the important information.
+        accurate statements that preserve all information.
         
         Please adhere to the following rules:
-        1. Do not make up new facts, only consolidate existing ones.
+        1. Do NOT add or remove information when consolidating facts; any information from the original facts must be present in the consolidated facts.
         2. Facts should be relatively short, no more than one sentence.
         3. All output facts must begin with the name of the person they are about.
-        4. Do not merge facts with distinct implications or subjects.
-        5. Do not add or remove information when consolidating facts.
-        6. Respond ONLY with a valid array containing consolidated / de-duplicated facts.
+        4. Do not merge facts that have distinct implications or refer to unique subjects.
+        5. Respond ONLY with a valid array containing consolidated / de-duplicated facts.
 
         Below is an example of how you should consolidate facts:
         
-        # Example Input:
+        # Example Input 1:
         [
-            "Ian likes to read",
-            "Ian likes reading",
-            "Ian is a bookworm",
-            "Ian is a coffee enthusiast",
-            "Ian enjoys drinking coffee",
-            "Ian likes to read",
-            "Ian likes to read science fiction"
+            "Ian likes to read.",
+            "Ian likes reading.",
+            "Ian is a bookworm.",
+            "Ian is a coffee enthusiast.",
+            "Ian enjoys drinking coffee.",
+            "Ian likes to read.",
+            "Ian likes to read science fiction."
         ]
 
-        # Example Output:
+        # Example Output 1:
         [
-            "Ian is a coffee enthusiast",
-            "Ian likes to read",
-            "Ian likes science fiction"
+            "Ian is a coffee enthusiast and enjoys drinking coffee.",
+            "Ian likes to read.",
+            "Ian likes the genre of science fiction."
+        ]
+
+        # Example Input 2:
+        [
+            "Kevin often shops at the local grocery store.  ",
+            "Kevin frequently buys apples at the local grocery store.",
+            "Kevin has a membership at a grocery store."
+        ]
+
+        # Example Output 2:
+        [
+            "Kevin has a membership and often shops at the local grocery store.",
+            "Kevin frequently buys apples at the local grocery store."
+        ]
+
+        # Example Input 3:
+        [
+            "Sarah is interested in learning how to bike",
+            "Sarah has an interest in hiking",
+            "Sarah like to be outside in her spare time.",
+            "Sarah likes to hike."
+        ]
+
+        # Example Output 3:
+        [
+            "Sarah likes to be outside in her spare time.",
+            "Sarah is interested in learning how to bike.",
+            "Sarah has an interest in hiking."
         ]
 
         # Input:
