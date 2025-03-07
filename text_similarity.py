@@ -2,7 +2,6 @@
 Utility functions for text similarity and clustering enhancement.
 """
 
-import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from typing import List, Tuple, Dict, Any
 
