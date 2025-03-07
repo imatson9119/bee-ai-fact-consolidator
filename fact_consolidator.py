@@ -11,6 +11,7 @@ import json
 import logging
 from typing import List, Dict, Any, Tuple, Optional
 import time
+import getpass
 
 import numpy as np
 import requests
@@ -19,7 +20,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from openai import OpenAI
 import click
 from collections import Counter
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 
 # Import our text similarity utilities
 import text_similarity
@@ -38,6 +39,50 @@ logger = logging.getLogger("fact-consolidator")
 API_BASE_URL = os.getenv("BEE_API_URL", "https://api.bee.computer")
 API_TOKEN = os.getenv("BEE_API_TOKEN", "")
 LLM_API_URL = os.getenv("LLM_API_URL", "http://localhost:1234/v1")
+
+# Function to prompt for missing credentials
+def prompt_for_credentials():
+    """Prompt the user for missing credentials and save them to .env file."""
+    global API_TOKEN, LLM_API_URL
+    
+    env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    env_exists = os.path.exists(env_file)
+    
+    if not API_TOKEN:
+        print("\n" + "="*80)
+        print("Bee AI API Token not found!")
+        print("You can get your API token from https://developer.bee.computer")
+        print("="*80 + "\n")
+        API_TOKEN = getpass.getpass("Enter your Bee AI API token: ").strip()
+        
+        if API_TOKEN:
+            if env_exists:
+                set_key(env_file, "BEE_API_TOKEN", API_TOKEN)
+            else:
+                with open(env_file, 'w') as f:
+                    f.write(f"BEE_API_TOKEN={API_TOKEN}\n")
+        else:
+            print("No API token provided. Exiting.")
+            return False
+    
+    if not LLM_API_URL:
+        print("\n" + "="*80)
+        print("LLM API URL not found!")
+        print("This should be the URL to your local LLM running with LM Studio")
+        print("Default is: http://localhost:1234/v1")
+        print("="*80 + "\n")
+        LLM_API_URL = input("Enter your LLM API URL [http://localhost:1234/v1]: ").strip()
+        
+        if not LLM_API_URL:
+            LLM_API_URL = "http://localhost:1234/v1"
+        
+        if env_exists:
+            set_key(env_file, "LLM_API_URL", LLM_API_URL)
+        else:
+            with open(env_file, 'a') as f:
+                f.write(f"LLM_API_URL={LLM_API_URL}\n")
+    
+    return True
 
 
 class FactClient:
@@ -114,6 +159,22 @@ class LLMClient:
     
     def __init__(self, api_url: str):
         self.client = OpenAI(base_url=api_url, api_key="not-needed")
+    
+    def test_connection(self) -> bool:
+        """Test the connection to the LLM API."""
+        try:
+            response = self.client.chat.completions.create(
+                model="local-model",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello, are you working?"}
+                ],
+                max_tokens=10
+            )
+            return True
+        except Exception as e:
+            logger.error(f"LLM connection test failed: {str(e)}")
+            raise Exception(f"Could not connect to LLM API: {str(e)}")
     
     def consolidate_facts(self, facts: List[str]) -> List[str]:
         """
@@ -358,15 +419,38 @@ def main(min_cluster_size: int, confirmed_only: bool, auto_approve: bool, dry_ru
         logger.setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
     
-    if not API_TOKEN:
-        logger.error("BEE_API_TOKEN environment variable is not set")
-        return
+    # Check for missing credentials and prompt if needed
+    if not API_TOKEN or not LLM_API_URL:
+        if not prompt_for_credentials():
+            return 1
     
     try:
         # Initialize clients
         fact_client = FactClient(API_BASE_URL, API_TOKEN)
         llm_client = LLMClient(LLM_API_URL)
         consolidator = FactConsolidator(fact_client, llm_client)
+        
+        # Test API connection
+        try:
+            logger.info("Testing API connection...")
+            fact_client.get_facts(limit=1)
+            logger.info("API connection successful")
+        except Exception as e:
+            logger.error(f"API connection failed: {str(e)}")
+            print(f"Error connecting to Bee AI API: {str(e)}")
+            print("Please check your API token and try again.")
+            return 1
+        
+        # Test LLM connection
+        try:
+            logger.info("Testing LLM connection...")
+            llm_client.test_connection()
+            logger.info("LLM connection successful")
+        except Exception as e:
+            logger.error(f"LLM connection failed: {str(e)}")
+            print(f"Error connecting to LLM API: {str(e)}")
+            print("Please make sure your local LLM is running and try again.")
+            return 1
         
         # Get facts
         confirmed_param = True if confirmed_only else None

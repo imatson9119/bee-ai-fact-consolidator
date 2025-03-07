@@ -9,6 +9,7 @@ A command-line tool that uses k-means clustering and LLM-based consolidation to 
 - Interactive approval of consolidation results
 - Batch processing via command line
 - Utilizes the Bee AI Facts API to manage facts
+- Interactive credential prompting for easy setup
 
 ## Requirements
 
@@ -18,15 +19,32 @@ A command-line tool that uses k-means clustering and LLM-based consolidation to 
 
 ## Installation
 
+### Using Homebrew (macOS/Linux)
+
+```bash
+# Add the tap (only needed once)
+brew tap imatson9119/bee-ai-fact-consolidator https://github.com/imatson9119/bee-ai-fact-consolidator
+
+# Install the package
+brew install bee-ai-fact-consolidator
+```
+
+### Manual Installation
+
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/bee-ai-fact-consolidator.git
+   git clone https://github.com/imatson9119/bee-ai-fact-consolidator.git
    cd bee-ai-fact-consolidator
    ```
 
 2. Set up the virtual environment using Pipenv:
    ```
    pipenv install
+   ```
+   
+   Or install using pip:
+   ```
+   pip install -e .
    ```
 
 3. Create a `.env` file based on the `.env.example`:
@@ -42,8 +60,16 @@ A command-line tool that uses k-means clustering and LLM-based consolidation to 
 
 2. Run the consolidator:
    ```
+   # If installed with Homebrew or pip
+   bee-fact-consolidator
+   
+   # If using Pipenv
    pipenv run python fact_consolidator.py
    ```
+
+3. If this is your first time running the tool, you will be prompted for:
+   - Your Bee AI API token (get one from https://developer.bee.computer)
+   - Your LLM API URL (default: http://localhost:1234/v1)
 
 ### Command-line options
 
@@ -59,32 +85,32 @@ A command-line tool that uses k-means clustering and LLM-based consolidation to 
 
 Process all facts with default settings (interactive approval):
 ```
-pipenv run python fact_consolidator.py
+bee-fact-consolidator
 ```
 
 Process only confirmed facts:
 ```
-pipenv run python fact_consolidator.py --confirmed-only
+bee-fact-consolidator --confirmed-only
 ```
 
 Automatically approve all consolidations:
 ```
-pipenv run python fact_consolidator.py --auto-approve
+bee-fact-consolidator --auto-approve
 ```
 
 Dry run to see what would be consolidated without making changes:
 ```
-pipenv run python fact_consolidator.py --dry-run
+bee-fact-consolidator --dry-run
 ```
 
 Adjust the similarity threshold for clustering:
 ```
-pipenv run python fact_consolidator.py --similarity-threshold 0.7
+bee-fact-consolidator --similarity-threshold 0.7
 ```
 
 Debug mode for troubleshooting:
 ```
-pipenv run python fact_consolidator.py --debug
+bee-fact-consolidator --debug
 ```
 
 ## How It Works
