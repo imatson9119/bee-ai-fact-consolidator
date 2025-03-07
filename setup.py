@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="bee-ai-fact-consolidator",
-    version="0.4.0",
+    version="0.5.0",
     description="A tool to consolidate and deduplicate facts from Bee AI using clustering and a local LLM",
     author="Ian Matson",
     author_email="howdy@ian-matson.com",

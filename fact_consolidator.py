@@ -94,21 +94,24 @@ class FactClient:
             "x-api-key": f"{token}",
             "Content-Type": "application/json"
         }
-    
-    def get_facts(self, confirmed: Optional[bool] = None) -> List[Dict[str, Any]]:
-        """Get all facts for the current user."""
-        url = f"{self.base_url}/v1/me/facts"
+
+    def get_facts(self, confirmed: Optional[bool] = None, page: int = 1, limit: int = 100) -> List[Dict[str, Any]]:
+        """Get facts for the current user."""
+        url = f"{self.base_url}/v1/me/facts?limit={limit}&page={page}"
         params = {}
         if confirmed is not None:
             params["confirmed"] = str(confirmed).lower()
         
+        response = requests.get(url, headers=self.headers, params=params)
+        return response
+
+    def get_all_facts(self, confirmed: Optional[bool] = None, limit: int = 100) -> List[Dict[str, Any]]:
+        """Get all facts for the current user."""
         all_facts = []
         page = 1
-        limit = 100
         
         while True:
-            params.update({"page": page, "limit": limit})
-            response = requests.get(url, headers=self.headers, params=params)
+            response = self.get_facts(confirmed=confirmed, page=page, limit=limit)
             response.raise_for_status()
             
             response_data = response.json()
@@ -455,7 +458,7 @@ def main(min_cluster_size: int, confirmed_only: bool, auto_approve: bool, dry_ru
         # Get facts
         confirmed_param = True if confirmed_only else None
         logger.info(f"Fetching facts (confirmed_only={confirmed_only})...")
-        facts = fact_client.get_facts(confirmed=confirmed_param)
+        facts = fact_client.get_all_facts(confirmed=confirmed_param)
         logger.info(f"Retrieved {len(facts)} facts")
         
         if not facts:
